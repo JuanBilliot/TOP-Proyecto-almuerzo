@@ -21,6 +21,17 @@ function App() {
   const weekNumber = "SEMANA 10 - MARZO 2025";
   const userTurn = "Turno 1 (13:00 - 14:00)";
 
+  // Color distintivo por menú (marco del color del menú + ribete esquina + iluminación al elegir)
+  const MENU_COLORS = {
+    1: { border: 'border-red-400/60 hover:border-red-400/85', selected: 'selected-tint-red', accent: 'text-red-400', banner: 'bg-red-500/20 border-red-500/30', shimmer: '#ef4444' },
+    2: { border: 'border-green-400/60 hover:border-green-400/85', selected: 'selected-tint-green', accent: 'text-green-400', banner: 'bg-green-500/20 border-green-500/30', shimmer: '#22c55e' },
+    3: { border: 'border-blue-400/60 hover:border-blue-400/85', selected: 'selected-tint-blue', accent: 'text-blue-400', banner: 'bg-blue-500/20 border-blue-500/30', shimmer: '#3b82f6' },
+    4: { border: 'border-amber-400/60 hover:border-amber-400/85', selected: 'selected-tint-amber', accent: 'text-amber-400', banner: 'bg-amber-500/20 border-amber-500/30', shimmer: '#f59e0b' },
+    5: { border: 'border-violet-400/60 hover:border-violet-400/85', selected: 'selected-tint-violet', accent: 'text-violet-400', banner: 'bg-violet-500/20 border-violet-500/30', shimmer: '#8b5cf6' },
+    6: { border: 'border-cyan-400/60 hover:border-cyan-400/85', selected: 'selected-tint-cyan', accent: 'text-cyan-400', banner: 'bg-cyan-500/20 border-cyan-500/30', shimmer: '#06b6d4' },
+    7: { border: 'border-slate-300/60 hover:border-slate-300/85', selected: 'selected-tint-slate', accent: 'text-slate-300', banner: 'bg-slate-500/20 border-slate-400/30', shimmer: '#94a3b8' }
+  };
+
   // Inicializar servicio (Google Drive prioritario)
   const menuService = new DriveService(); // Cambiar a GitHubService como backup
 
@@ -360,50 +371,35 @@ function App() {
         </header>
 
           <div className="grid grid-cols-3 gap-1 mb-1">
-            {currentDay.menus.slice(0, 3).map((menu, index) => {
+            {currentDay.menus.slice(0, 3).map((menu) => {
               const Icon = menu.icon;
               const isCurrentlySelected = isSelected?.id === menu.id;
-              
-              // Colores diferentes para cada card (muy sutiles)
-              const borderColors = [
-                'border-purple-500/10 hover:border-purple-500/20',
-                'border-blue-500/10 hover:border-blue-500/20', 
-                'border-green-500/10 hover:border-green-500/20'
-              ];
-              
+              const theme = MENU_COLORS[menu.id] || MENU_COLORS[1];
               return (
                 <div
                   key={menu.id}
                   onClick={() => handleMenuSelect(menu.id)}
-                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected' : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${borderColors[index]}`}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${theme.border}`}
+                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
                 >
-                  {/* Fondo con icono como marca de agua - PARTE DEL FONDO */}
+                  <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
                   <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
                     <Icon className="w-32 h-32 text-blue-300/20" />
                   </div>
-                  
-                  {/* Contenido - ENCIMA del fondo */}
                   <div className="flex flex-col items-center text-center relative z-10">
                     <div className="mb-1">
-                      <Icon className="w-5 h-5 text-blue-400 opacity-80" />
+                      <Icon className={`w-5 h-5 opacity-80 ${theme.accent}`} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-200 mb-1">
-                        {menu.name}
-                      </h3>
-                      <p className="text-gray-400 text-xs mb-1">
-                        {menu.category}
-                      </p>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {menu.dish}
-                      </p>
+                      <h3 className="text-sm font-semibold text-gray-200 mb-1">{menu.name}</h3>
+                      <p className="text-gray-400 text-xs mb-1">{menu.category}</p>
+                      <p className="text-gray-300 text-sm leading-relaxed">{menu.dish}</p>
                     </div>
                   </div>
-                  
                   {isCurrentlySelected && (
-                    <div className="flex items-center justify-center gap-1 mt-1 relative z-20">
-                      <Check className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400 font-semibold text-xs">¡ELEGIDO!</span>
+                    <div className={`flex items-center justify-center gap-1 mt-1 relative z-20 ${theme.accent}`}>
+                      <Check className="w-3 h-3" />
+                      <span className="font-semibold text-xs">¡ELEGIDO!</span>
                     </div>
                   )}
                 </div>
@@ -412,50 +408,35 @@ function App() {
           </div>
           
           <div className="grid grid-cols-3 gap-1 mb-1">
-            {currentDay.menus.slice(3, 6).map((menu, index) => {
+            {currentDay.menus.slice(3, 6).map((menu) => {
               const Icon = menu.icon;
               const isCurrentlySelected = isSelected?.id === menu.id;
-              
-              // Colores diferentes para cada card (segunda fila - muy sutiles)
-              const borderColors = [
-                'border-orange-500/10 hover:border-orange-500/20',
-                'border-pink-500/10 hover:border-pink-500/20', 
-                'border-yellow-500/10 hover:border-yellow-500/20'
-              ];
-              
+              const theme = MENU_COLORS[menu.id] || MENU_COLORS[4];
               return (
                 <div
                   key={menu.id}
                   onClick={() => handleMenuSelect(menu.id)}
-                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected' : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${borderColors[index]}`}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${theme.border}`}
+                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
                 >
-                  {/* Fondo con icono como marca de agua - PARTE DEL FONDO */}
+                  <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
                   <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
                     <Icon className="w-32 h-32 text-blue-300/20" />
                   </div>
-                  
-                  {/* Contenido - ENCIMA del fondo */}
                   <div className="flex flex-col items-center text-center relative z-10">
                     <div className="mb-1">
-                      <Icon className="w-5 h-5 text-blue-400 opacity-80" />
+                      <Icon className={`w-5 h-5 opacity-80 ${theme.accent}`} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-200 mb-1">
-                        {menu.name}
-                      </h3>
-                      <p className="text-gray-400 text-xs mb-1">
-                        {menu.category}
-                      </p>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {menu.dish}
-                      </p>
+                      <h3 className="text-sm font-semibold text-gray-200 mb-1">{menu.name}</h3>
+                      <p className="text-gray-400 text-xs mb-1">{menu.category}</p>
+                      <p className="text-gray-300 text-sm leading-relaxed">{menu.dish}</p>
                     </div>
                   </div>
-                  
                   {isCurrentlySelected && (
-                    <div className="flex items-center justify-center gap-1 mt-1 relative z-20">
-                      <Check className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400 font-semibold text-xs">¡ELEGIDO!</span>
+                    <div className={`flex items-center justify-center gap-1 mt-1 relative z-20 ${theme.accent}`}>
+                      <Check className="w-3 h-3" />
+                      <span className="font-semibold text-xs">¡ELEGIDO!</span>
                     </div>
                   )}
                 </div>
@@ -465,60 +446,58 @@ function App() {
           
           {/* SIN VIANDA - Card especial alargada abajo */}
           <div className="mb-1">
-            {currentDay.menus[6] && (
-              <div
-                onClick={() => handleMenuSelect(currentDay.menus[6].id)}
-                className={`weekly-menu-item ${isSelected?.id === currentDay.menus[6].id ? 'selected' : ''} p-1 cursor-pointer transition-all duration-300 aspect-[6/1] flex items-center justify-between relative overflow-hidden border-red-500/10 hover:border-red-500/20`}
-              >
-                {/* Fondo con icono como marca de agua - PARTE DEL FONDO */}
-                <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
-                  <X className="w-36 h-36 text-red-300/20" />
+            {currentDay.menus[6] && (() => {
+              const menu = currentDay.menus[6];
+              const isCurrentlySelected = isSelected?.id === menu.id;
+              const theme = MENU_COLORS[7];
+              return (
+                <div
+                  onClick={() => handleMenuSelect(menu.id)}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1 cursor-pointer transition-all duration-300 aspect-[6/1] flex items-center justify-between relative overflow-hidden ${theme.border}`}
+                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
+                >
+                  <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
+                  <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
+                    <X className="w-36 h-36 text-slate-300/20" />
+                  </div>
+                  <div className="flex items-center gap-2 relative z-10">
+                    <div className="mb-1">
+                      <X className={`w-4 h-4 opacity-80 ${theme.accent}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-200 mb-1">{menu.name}</h3>
+                      <p className="text-gray-400 text-xs mb-1">{menu.category}</p>
+                      <p className="text-gray-300 text-xs">{menu.dish}</p>
+                      <p className="text-gray-400 text-xs mt-1 italic">Opción para quienes no almuerzan</p>
+                    </div>
+                  </div>
+                  {isCurrentlySelected && (
+                    <div className={`flex items-center gap-2 relative z-20 ${theme.accent}`}>
+                      <Check className="w-3 h-3" />
+                      <span className="font-semibold text-xs">¡ELEGIDO!</span>
+                    </div>
+                  )}
                 </div>
-                
-                {/* Contenido - ENCIMA del fondo */}
-                <div className="flex items-center gap-2 relative z-10">
-                  <div className="mb-1">
-                    <X className="w-4 h-4 text-red-400 opacity-80" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-200 mb-1">
-                      {currentDay.menus[6].name}
-                    </h3>
-                    <p className="text-gray-400 text-xs mb-1">
-                      {currentDay.menus[6].category}
-                    </p>
-                    <p className="text-gray-300 text-xs">
-                      {currentDay.menus[6].dish}
-                    </p>
-                    <p className="text-gray-400 text-xs mt-1 italic">
-                      Opción para quienes no almuerzan
-                    </p>
-                  </div>
-                </div>
-                
-                {isSelected?.id === currentDay.menus[6].id && (
-                  <div className="flex items-center gap-2 relative z-20">
-                    <Check className="w-3 h-3 text-green-400" />
-                    <span className="text-green-400 font-semibold text-xs">¡ELEGIDO!</span>
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })()}
           </div>
 
-          {isSelected && (
-            <div className="text-center animate-fade-in">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-green-500/20 border border-green-500/30 rounded-full mb-4">
-                <Check className="w-5 h-5 text-green-400" />
-                <span className="text-green-400 font-medium">
-                  Has elegido {isSelected.name} - {isSelected.dish}
-                </span>
+          {isSelected && (() => {
+            const theme = MENU_COLORS[isSelected.id] || MENU_COLORS[2];
+            return (
+              <div className="text-center animate-fade-in">
+                <div className={`inline-flex items-center gap-3 px-6 py-3 border rounded-full mb-4 ${theme.banner} ${theme.accent}`}>
+                  <Check className="w-5 h-5" />
+                  <span className="font-medium">
+                    Has elegido {isSelected.name} - {isSelected.dish}
+                  </span>
+                </div>
+                <p className="text-gray-400 text-sm">
+                  Avanzando al siguiente día...
+                </p>
               </div>
-              <p className="text-gray-400 text-sm">
-                Avanzando al siguiente día...
-              </p>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     );
@@ -704,7 +683,6 @@ function App() {
         }
         .weekly-menu-item:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
         }
         .weekly-menu-item::before {
           content: '';
@@ -713,13 +691,8 @@ function App() {
           left: -100%;
           width: 100%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
         }
-        .weekly-menu-item.selected {
-          border-color: #22C55E;
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
-        }
-        
         .weekly-menu-item.selected::after {
           content: '';
           position: absolute;
@@ -727,9 +700,16 @@ function App() {
           left: 0;
           right: 0;
           height: 2px;
-          background: linear-gradient(90deg, #22C55E, #3B82F6, #8B5CF6);
+          background: linear-gradient(90deg, var(--selected-color), transparent);
           animation: shimmer 2s infinite;
         }
+        .selected-tint-red.selected { border-color: rgba(239,68,68,0.75); background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06)); box-shadow: 0 6px 28px rgba(239,68,68,0.35); }
+        .selected-tint-green.selected { border-color: rgba(34,197,94,0.75); background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06)); box-shadow: 0 6px 28px rgba(34,197,94,0.35); }
+        .selected-tint-blue.selected { border-color: rgba(59,130,246,0.75); background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.06)); box-shadow: 0 6px 28px rgba(59,130,246,0.35); }
+        .selected-tint-amber.selected { border-color: rgba(245,158,11,0.75); background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.06)); box-shadow: 0 6px 28px rgba(245,158,11,0.35); }
+        .selected-tint-violet.selected { border-color: rgba(139,92,246,0.75); background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(139,92,246,0.06)); box-shadow: 0 6px 28px rgba(139,92,246,0.35); }
+        .selected-tint-cyan.selected { border-color: rgba(6,182,212,0.75); background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06)); box-shadow: 0 6px 28px rgba(6,182,212,0.35); }
+        .selected-tint-slate.selected { border-color: rgba(148,163,184,0.75); background: linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.06)); box-shadow: 0 6px 28px rgba(148,163,184,0.35); }
         
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
