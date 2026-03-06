@@ -17,9 +17,10 @@ function App() {
   const [userEmail, setUserEmail] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userTurn, setUserTurn] = useState('Turno 1 (13:00 - 14:00)');
 
   const weekNumber = "SEMANA 10 - MARZO 2025";
-  const userTurn = "Turno 1 (13:00 - 14:00)";
+  const TURNO_LABELS = { '1': 'Turno 1 (13:00 - 14:00)', '2': 'Turno 2 (14:00 - 15:00)' };
 
   // Color distintivo por menú (marco del color del menú + ribete esquina + iluminación al elegir)
   const MENU_COLORS = {
@@ -167,6 +168,11 @@ function App() {
             setUserName(prettyName);
           }
         }
+      }
+
+      const turnoFromUrl = params.get('turno');
+      if (turnoFromUrl === '1' || turnoFromUrl === '2') {
+        setUserTurn(TURNO_LABELS[turnoFromUrl] || TURNO_LABELS['1']);
       }
     } catch (e) {
       console.error('No se pudo leer el token de usuario desde la URL', e);
