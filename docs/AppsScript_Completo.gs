@@ -1,6 +1,8 @@
 // CONFIGURACIÓN BÁSICA
 const APP_BASE_URL = 'https://top-proyecto-almuerzo-27dq630nj-juanbilliot-6686s-projects.vercel.app';
 const SHEET_NAME = 'Hoja 1'; // cambia si tu pestaña se llama distinto
+const CARPETA_DRIVE_COCINA_ID = '1tiH7zZ8yZHWbiDD8e64basLJPAfxrrHm'; // Carpeta donde se genera el archivo para cocina
+const HOJA_RESPUESTAS = 'Respuestas';
 
 function generateToken_() {
   return Utilities.getUuid();
@@ -102,6 +104,50 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// Obtiene o crea la hoja "Respuestas" y devuelve referencia
+function obtenerHojaRespuestas() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(HOJA_RESPUESTAS);
+  if (!sheet) {
+    sheet = ss.insertSheet(HOJA_RESPUESTAS);
+    sheet.getRange(1, 1, 1, 10).setValues([['Semana', 'Token', 'Nombre', 'Email', 'Turno', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']]);
+    sheet.getRange(1, 1, 1, 10).setFontWeight('bold');
+  }
+  return sheet;
+}
+
+// Guarda o actualiza la respuesta en la hoja (una fila por usuario por semana)
+function guardarRespuestaEnSheet(data) {
+  var sheet = obtenerHojaRespuestas();
+  var headers = sheet.getRange(1, 1, 1, 10).getValues()[0];
+  var lastRow = sheet.getLastRow();
+  var weekKey = data.weekKey || data.weekNumber || '';
+  var token = (data.userToken || '').toString();
+  var nombre = data.userName || 'Colaborador';
+  var email = data.userEmail || '';
+  var turno = data.userTurn || '';
+  var selections = data.selections || {};
+  var dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'];
+  var row = [weekKey, token, nombre, email, turno];
+  for (var i = 0; i < 5; i++) {
+    var sel = selections[i];
+    row.push(sel ? (sel.name + ' - ' + sel.dish) : '');
+  }
+  var dataRows = lastRow >= 2 ? sheet.getRange(2, 1, lastRow, 2).getValues() : [];
+  var rowIndex = -1;
+  for (var r = 0; r < dataRows.length; r++) {
+    if (String(dataRows[r][0]) === String(weekKey) && String(dataRows[r][1]) === token) {
+      rowIndex = r + 2;
+      break;
+    }
+  }
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex, 1, rowIndex, 10).setValues([row]);
+  } else {
+    sheet.appendRow(row);
+  }
+}
+
 // === WEB APP: recibe la selección final desde la app ===
 function doPost(e) {
   try {
@@ -118,6 +164,8 @@ function doPost(e) {
     var userTurn   = data.userTurn   || '';
     var selections = data.selections || {};
     var weeklyMenu = data.weeklyMenu || [];
+
+    guardarRespuestaEnSheet(data);
 
     var summaryLines = weeklyMenu.map(function(day, index) {
       var sel = selections[index];
@@ -190,4 +238,61 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON)
       .setResponseCode(500);
   }
+}
+
+// --- Informe para cocina: crear archivo en Drive (ejecutar lunes 9:00 Argentina) ---
+function generarInformeSemanal() {
+  var ahora = new Date();
+  var tz = 'America/Argentina/Buenos_Aires';
+  var strFecha = Utilities.formatDate(ahora, tz, 'yyyy-MM-dd');
+  var diaSemana = Utilities.formatDate(ahora, tz, 'u'); // 1=Lunes, 7=Domingo
+  if (diaSemana !== '1') {
+    Logger.log('No es lunes; no se genera informe.');
+    return;
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(HOJA_RESPUESTAS);
+  if (!sheet || sheet.getLastRow() < 2) {
+    Logger.log('Sin datos en Respuestas.');
+    return;
+  }
+  var datos = sheet.getRange(2, 1, sheet.getLastRow(), 10).getValues();
+  var semanaFiltrada = datos.filter(function(row) { return String(row[0]) === strFecha; });
+  if (semanaFiltrada.length === 0) {
+    Logger.log('Sin respuestas para la semana ' + strFecha);
+    return;
+  }
+  var turno1 = semanaFiltrada.filter(function(row) { return String(row[4]).indexOf('1') !== -1; });
+  var turno2 = semanaFiltrada.filter(function(row) { return String(row[4]).indexOf('2') !== -1; });
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var parts = strFecha.split('-');
+  var d1 = parseInt(parts[2], 10);
+  var d2 = d1 + 4;
+  var mes = meses[parseInt(parts[1], 10) - 1];
+  var anio = parts[0];
+  var nombreArchivo = 'Menus Semana ' + d1 + '-' + d2 + ' ' + mes + ' ' + anio;
+  var ssNew = SpreadsheetApp.create(nombreArchivo);
+  var hoja = ssNew.getSheets()[0];
+  hoja.setName('Resumen');
+  var filas = [];
+  filas.push(['TURNO 1 (13:00 - 14:00)']);
+  filas.push(['Nombre', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']);
+  turno1.forEach(function(row) {
+    filas.push([row[2], row[5], row[6], row[7], row[8], row[9]]);
+  });
+  filas.push([]);
+  filas.push(['TURNO 2 (14:00 - 15:00)']);
+  filas.push(['Nombre', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes']);
+  turno2.forEach(function(row) {
+    filas.push([row[2], row[5], row[6], row[7], row[8], row[9]]);
+  });
+  if (filas.length > 0) {
+    hoja.getRange(1, 1, filas.length, 6).setValues(filas);
+    hoja.getRange(1, 1, 2, 6).setFontWeight('bold');
+  }
+  var folder = DriveApp.getFolderById(CARPETA_DRIVE_COCINA_ID);
+  var file = DriveApp.getFileById(ssNew.getId());
+  folder.addFile(file);
+  DriveApp.getRootFolder().removeFile(file);
+  Logger.log('Informe creado: ' + nombreArchivo + ' en carpeta cocina.');
 }

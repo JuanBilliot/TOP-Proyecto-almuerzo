@@ -19,8 +19,31 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userTurn, setUserTurn] = useState('Turno 1 (13:00 - 14:00)');
 
-  const weekNumber = "SEMANA 10 - MARZO 2025";
   const TURNO_LABELS = { '1': 'Turno 1 (13:00 - 14:00)', '2': 'Turno 2 (14:00 - 15:00)' };
+
+  // Semana del menú: lunes a viernes (regla: jueves a lunes 9h Argentina abierto; mostramos "del lunes X al viernes Y")
+  const getMenuWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
+    const daysToMonday = (8 - dayOfWeek) % 7;
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + daysToMonday);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 4);
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const d1 = weekStart.getDate();
+    const d2 = weekEnd.getDate();
+    const mes = meses[weekEnd.getMonth()];
+    return {
+      label: `Semana del ${d1} al ${d2} de ${mes}`,
+      weekKey: weekStart.toISOString().slice(0, 10), // YYYY-MM-DD para el backend
+      friday: weekEnd,
+    };
+  };
+  const menuWeek = getMenuWeek();
+  const weekNumber = menuWeek.label;
+  const weekKey = menuWeek.weekKey;
+  const fridayStr = menuWeek.friday.getDate().toString().padStart(2,'0') + '/' + (menuWeek.friday.getMonth()+1).toString().padStart(2,'0');
 
   // Color distintivo por menú (marco del color del menú + ribete esquina + iluminación al elegir)
   const MENU_COLORS = {
@@ -232,6 +255,7 @@ function App() {
       userName,
       userEmail,
       weekNumber,
+      weekKey,
       userTurn,
       selections,
       weeklyMenu,
@@ -314,7 +338,7 @@ function App() {
         </button>
         
         <p className="text-gray-400 text-sm mt-6 tracking-widest uppercase">
-          {userTurn} • Modifica hasta el viernes 13/03 10:00 AM
+          {userTurn} • Modifica hasta el viernes {fridayStr} 9:00 AM
         </p>
       </div>
     </div>

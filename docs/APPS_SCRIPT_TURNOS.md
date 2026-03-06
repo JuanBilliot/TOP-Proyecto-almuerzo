@@ -106,3 +106,27 @@ En la app, por ahora están fijos:
 - **Turno 2:** 14:00 - 15:00  
 
 Si necesitás otros horarios, se pueden cambiar en `App.jsx` en la constante `TURNO_LABELS`.
+
+---
+
+## 5. Respuestas y archivo para cocina
+
+- Cada vez que un usuario confirma su menú, el script **guarda** la respuesta en una hoja del mismo Spreadsheet llamada **Respuestas** (se crea sola la primera vez). Si el mismo usuario envía de nuevo para la misma semana, se actualiza su fila.
+- La carpeta de Drive donde se genera el archivo para cocina es esta (ya configurada en el script):  
+  [Carpeta Drive – Menú cocina](https://drive.google.com/drive/folders/1tiH7zZ8yZHWbiDD8e64basLJPAfxrrHm)  
+  El archivo se **crea y va llenando** con las respuestas; el envío a la persona de cocina es **manual** por tu parte.
+
+## 6. Cierre automático (lunes 9:00 Argentina)
+
+Para que cada **lunes a las 9:00 (hora Argentina)** se genere automáticamente el archivo de la semana en la carpeta de Drive:
+
+1. En el proyecto de Apps Script: **Editar** → **Activadores del proyecto** (o **Triggers**).
+2. **Añadir activador**: función **`generarInformeSemanal`**.
+3. **Tipo**: "Activador basado en tiempo".
+4. **Intervalo**: "Semanal".
+5. **Día**: "Lunes".
+6. **Hora**: "9:00 a 10:00".
+7. **Zona horaria**: "America/Argentina/Buenos_Aires".
+8. Guardar.
+
+Ese día a esa hora el script crea un Google Sheet en la carpeta con el resumen por turno (Turno 1 y Turno 2) y por persona (nombre + lo elegido cada día). Podés descargarlo como Excel si lo necesitás.
