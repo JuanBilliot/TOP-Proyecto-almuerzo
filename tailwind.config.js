@@ -4,6 +4,12 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    'text-red-400', 'text-green-400', 'text-blue-400', 'text-amber-400', 'text-violet-400', 'text-cyan-400', 'text-slate-300',
+    'bg-red-500/20', 'border-red-500/30', 'bg-green-500/20', 'border-green-500/30', 'bg-blue-500/20', 'border-blue-500/30',
+    'bg-amber-500/20', 'border-amber-500/30', 'bg-violet-500/20', 'border-violet-500/30', 'bg-cyan-500/20', 'border-cyan-500/30', 'bg-slate-500/20', 'border-slate-400/30',
+    'selected-tint-red', 'selected-tint-green', 'selected-tint-blue', 'selected-tint-amber', 'selected-tint-violet', 'selected-tint-cyan', 'selected-tint-slate',
+  ],
   theme: {
     extend: {
       colors: {

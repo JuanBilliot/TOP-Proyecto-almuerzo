@@ -21,22 +21,24 @@ function App() {
 
   const TURNO_LABELS = { '1': 'Turno 1 (13:00 - 14:00)', '2': 'Turno 2 (14:00 - 15:00)' };
 
-  // Semana del menú: lunes a viernes (regla: jueves a lunes 9h Argentina abierto; mostramos "del lunes X al viernes Y")
+  // Semana del menú: lunes a viernes (hora Argentina; mostramos "del lunes X al viernes Y")
   const getMenuWeek = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
+    const now = new Date();
+    const arDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }); // YYYY-MM-DD
+    const [y, mo, d] = arDateStr.split('-').map(Number);
+    const dayOfWeek = new Date(y, mo - 1, d).getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
     const daysToMonday = (8 - dayOfWeek) % 7;
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() + daysToMonday);
+    const weekStart = new Date(y, mo - 1, d + daysToMonday);
     const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 4);
+    weekEnd.setDate(weekEnd.getDate() + 4);
     const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     const d1 = weekStart.getDate();
     const d2 = weekEnd.getDate();
     const mes = meses[weekEnd.getMonth()];
+    const weekKeyStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
     return {
       label: `Semana del ${d1} al ${d2} de ${mes}`,
-      weekKey: weekStart.toISOString().slice(0, 10), // YYYY-MM-DD para el backend
+      weekKey: weekKeyStr,
       friday: weekEnd,
     };
   };
@@ -409,12 +411,12 @@ function App() {
                 <div
                   key={menu.id}
                   onClick={() => handleMenuSelect(menu.id)}
-                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${theme.border}`}
-                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden`}
+                  style={{ borderColor: theme.shimmer, '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
                 >
                   <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
                   <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
-                    <Icon className="w-32 h-32 text-blue-300/20" />
+                    <Icon className="w-32 h-32" style={{ color: theme.shimmer }} />
                   </div>
                   <div className="flex flex-col items-center text-center relative z-10">
                     <div className="mb-1">
@@ -446,12 +448,12 @@ function App() {
                 <div
                   key={menu.id}
                   onClick={() => handleMenuSelect(menu.id)}
-                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden ${theme.border}`}
-                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1.5 cursor-pointer transition-all duration-300 aspect-[4/3] flex flex-col justify-between relative overflow-hidden`}
+                  style={{ borderColor: theme.shimmer, '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
                 >
                   <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
                   <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
-                    <Icon className="w-32 h-32 text-blue-300/20" />
+                    <Icon className="w-32 h-32" style={{ color: theme.shimmer }} />
                   </div>
                   <div className="flex flex-col items-center text-center relative z-10">
                     <div className="mb-1">
@@ -483,12 +485,12 @@ function App() {
               return (
                 <div
                   onClick={() => handleMenuSelect(menu.id)}
-                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1 cursor-pointer transition-all duration-300 aspect-[6/1] flex items-center justify-between relative overflow-hidden ${theme.border}`}
-                  style={{ '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
+                  className={`weekly-menu-item ${isCurrentlySelected ? 'selected ' + theme.selected : ''} p-1 cursor-pointer transition-all duration-300 aspect-[6/1] flex items-center justify-between relative overflow-hidden`}
+                  style={{ borderColor: theme.shimmer, '--selected-color': theme.shimmer, '--card-color': theme.shimmer }}
                 >
                   <div className="absolute top-0 right-0 w-0 h-0 border-[18px] border-t-transparent border-b-transparent border-l-transparent opacity-50 pointer-events-none z-[1]" style={{ borderRightColor: theme.shimmer }} aria-hidden />
                   <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none opacity-[0.06]">
-                    <X className="w-36 h-36 text-slate-300/20" />
+                    <X className="w-36 h-36" style={{ color: theme.shimmer }} />
                   </div>
                   <div className="flex items-center gap-2 relative z-10">
                     <div className="mb-1">
